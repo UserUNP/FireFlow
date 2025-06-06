@@ -85,13 +85,23 @@ public class FunctionCommand {
                                         .executes(ctx -> {
                                             ServerPlayerEntity player = CommandHelper.getPlayer(ctx.getSource());
                                             Space space = CommandHelper.getSpace(player);
-                                            if (!CommandHelper.isInCode(player, space))
-                                                return Command.SINGLE_SUCCESS;
+                                            if (!CommandHelper.isInCode(player, space)) return Command.SINGLE_SUCCESS;
                                             space.editor.removeFunctionOutput(EditOrigin.ofPlayer(player), StringArgumentType.getString(ctx, "output"));
                                             return Command.SINGLE_SUCCESS;
                                         })
                                 )
                         )
+                )
+                .then(CommandManager.literal("command")
+                                .then(CommandManager.argument("name", StringArgumentType.word())
+                                        .executes(ctx -> {
+                                            ServerPlayerEntity player = CommandHelper.getPlayer(ctx.getSource());
+                                            Space space = CommandHelper.getSpace(player);
+                                            if (!CommandHelper.isInCode(player, space)) return Command.SINGLE_SUCCESS;
+                                            space.editor.createCommand(EditOrigin.ofPlayer(player), StringArgumentType.getString(ctx, "name"));
+                                            return Command.SINGLE_SUCCESS;
+                                        })
+                                )
                 )
         );
     }

@@ -4,19 +4,22 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import de.blazemcworld.fireflow.code.value.ListValue;
 import net.minecraft.item.Items;
+import net.minecraft.predicate.NumberRange;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ListType<T> extends WireType<ListValue<T>> {
 
     public static final ListType<?> UNSPECIFIED = new ListType<>(null);
-    public final WireType<T> elementType;
     private static final WeakHashMap<WireType<?>, ListType<?>> instances = new WeakHashMap<>();
 
+    public final WireType<T> elementType;
     private ListType(WireType<T> type) {
         super("list", computeColor(type), Items.BOOKSHELF);
         this.elementType = type;
@@ -46,6 +49,19 @@ public class ListType<T> extends WireType<ListValue<T>> {
     public ListValue<T> checkType(Object obj) {
         if (obj instanceof ListValue<?> list && list.type == elementType) return (ListValue<T>) list;
         return null;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected ListValue<T> convertInternal(WireType<?> other, Object v) {
+        if (other instanceof ListType<?> list && list.elementType == NumberType.INSTANCE &&
+            elementType == NumberType.INSTANCE && v instanceof NumberRange.IntRange r && !r.isDummy()) {
+            return (ListValue<T>) new ListValue<>(NumberType.INSTANCE,
+                    IntStream.range(r.min().get(), r.max().get())
+                            .asDoubleStream().boxed()
+                            .collect(Collectors.toList()));
+        }
+        return super.convert(other, v);
     }
     
     @Override

@@ -23,6 +23,8 @@
         "ServerEntityManagerMixin",
         "ServerPlayerEntityMixin",
         "ServerPlayerInteractionManagerMixin",
-        "ServerPlayNetworkHandlerMixin"
+        "ServerPlayNetworkHandlerMixin",
+        "CommandDispatcherMixin",
+        "CommandDispatcherInvoker"
     ]
 }

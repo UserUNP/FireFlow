@@ -1,8 +1,12 @@
 package de.blazemcworld.fireflow.code;
 
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.tree.RootCommandNode;
+
+import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.code.node.Node;
 import de.blazemcworld.fireflow.code.node.Node.Varargs;
+import de.blazemcworld.fireflow.code.node.impl.command.SpaceCommandDefinition;
 import de.blazemcworld.fireflow.code.node.impl.event.*;
 import de.blazemcworld.fireflow.code.node.impl.event.action.*;
 import de.blazemcworld.fireflow.code.node.impl.event.combat.*;
@@ -25,6 +29,7 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
 import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -40,6 +45,7 @@ public class CodeEvaluator {
     public final Space space;
     private boolean stopped = false;
     public final VariableStore sessionVariables = new VariableStore();
+    public final RootCommandNode<ServerCommandSource> rootCommandNode = new RootCommandNode<>();
     public Set<Node> nodes;
     public final PlayWorld world;
     private final Set<Runnable> tickTasks = new HashSet<>();
@@ -49,11 +55,16 @@ public class CodeEvaluator {
     public CodeEvaluator(Space space) {
         this.space = space;
         world = space.playWorld;
+        var serverCommandNode = FireFlow.server.getCommandManager().getDispatcher().getRoot();
+        for (var node : serverCommandNode.getChildren()) rootCommandNode.addChild(node);
 
         Set<NodeWidget> nodes = new HashSet<>();
         for (Widget widget : space.editor.rootWidgets) {
             if (widget instanceof NodeWidget nodeWidget) {
                 nodes.add(nodeWidget);
+                if (nodeWidget.node instanceof SpaceCommandDefinition.SyntaxNode cmdSyntaxNode) {
+                    cmdSyntaxNode.register(rootCommandNode, this);
+                }
             }
         }
 

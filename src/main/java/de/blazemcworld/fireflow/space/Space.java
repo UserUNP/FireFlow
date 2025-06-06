@@ -1,7 +1,19 @@
 package de.blazemcworld.fireflow.space;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.RootCommandNode;
+
 import de.blazemcworld.fireflow.FireFlow;
 import de.blazemcworld.fireflow.code.CodeEditor;
 import de.blazemcworld.fireflow.code.CodeEvaluator;
@@ -9,15 +21,11 @@ import de.blazemcworld.fireflow.code.CodeWorld;
 import de.blazemcworld.fireflow.code.VariableStore;
 import de.blazemcworld.fireflow.util.DummyPlayer;
 import de.blazemcworld.fireflow.util.ModeManager;
+import net.minecraft.command.CommandSource;
+import net.minecraft.network.packet.s2c.play.CommandTreeS2CPacket;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.GameMode;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Space {
     public final SpaceInfo info;
@@ -103,7 +111,16 @@ public class Space {
         }
     }
 
+    public void sendCommandTree(ServerPlayerEntity player) {
+        Map<CommandNode<ServerCommandSource>, CommandNode<CommandSource>> map = new HashMap<>();
+        RootCommandNode<CommandSource> result = new RootCommandNode<>();
+        map.put(evaluator.rootCommandNode, result);
+        FireFlow.server.getCommandManager().makeTreeForSource(evaluator.rootCommandNode, result, player.getCommandSource(), map);
+        player.networkHandler.sendPacket(new CommandTreeS2CPacket(result));
+    }
+
     public void enterPlay(ServerPlayerEntity player) {
+        sendCommandTree(player);
         evaluator.onJoin(player);
     }
 

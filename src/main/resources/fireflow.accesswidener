@@ -17,3 +17,4 @@ mutable field net/minecraft/server/command/CommandManager dispatcher Lcom/mojang
 accessible field net/minecraft/server/world/ServerWorld entityManager Lnet/minecraft/server/world/ServerEntityManager;
 mutable field net/minecraft/server/world/ServerWorld entityManager Lnet/minecraft/server/world/ServerEntityManager;
 accessible field net/minecraft/server/dedicated/AbstractPropertiesHandler properties Ljava/util/Properties;
+accessible method net/minecraft/server/command/CommandManager makeTreeForSource (Lcom/mojang/brigadier/tree/CommandNode;Lcom/mojang/brigadier/tree/CommandNode;Lnet/minecraft/server/command/ServerCommandSource;Ljava/util/Map;)V

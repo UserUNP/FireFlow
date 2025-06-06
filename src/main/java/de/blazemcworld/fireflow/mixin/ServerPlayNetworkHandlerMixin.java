@@ -3,6 +3,7 @@ package de.blazemcworld.fireflow.mixin;
 import com.mojang.brigadier.ParseResults;
 import de.blazemcworld.fireflow.code.CodeInteraction;
 import de.blazemcworld.fireflow.code.EditOrigin;
+import de.blazemcworld.fireflow.command.CommandHelper;
 import de.blazemcworld.fireflow.inventory.InventoryMenu;
 import de.blazemcworld.fireflow.space.Lobby;
 import de.blazemcworld.fireflow.space.PlayWorld;

@@ -10,6 +10,7 @@ import de.blazemcworld.fireflow.code.action.DeleteSelectAction;
 import de.blazemcworld.fireflow.code.action.SelectAction;
 import de.blazemcworld.fireflow.code.node.Node;
 import de.blazemcworld.fireflow.code.node.NodeList;
+import de.blazemcworld.fireflow.code.node.impl.command.SpaceCommandDefinition;
 import de.blazemcworld.fireflow.code.node.impl.function.FunctionCallNode;
 import de.blazemcworld.fireflow.code.node.impl.function.FunctionDefinition;
 import de.blazemcworld.fireflow.code.node.impl.function.FunctionInputsNode;
@@ -49,6 +50,7 @@ public class CodeEditor {
     public final HashMap<EditOrigin, Set<Widget>> lockedWidgets = new HashMap<>();
     private final HashMap<EditOrigin, CodeAction> actions = new HashMap<>();
     public final HashMap<String, FunctionDefinition> functions = new HashMap<>();
+    public final HashMap<String, SpaceCommandDefinition> commands = new HashMap<>();
     private final Path codePath;
     private final Set<EditOrigin> webUsers = new HashSet<>();
     private final List<Runnable> tickTasks = new ArrayList<>();
@@ -154,6 +156,14 @@ public class CodeEditor {
         return Optional.of(new WidgetVec(this, pos.getX(), pos.getY()));
     }
 
+    private boolean assertCodeCursor(EditOrigin p, Optional<WidgetVec> pos) {
+        if (pos.isEmpty()) {
+            p.sendError("You must be looking at the code area!");
+            return true;
+        }
+        return false;
+    }
+
     public void addNode(EditOrigin player, String query, boolean isSearch) {
         String lowerQuery = query.toLowerCase();
         Optional<WidgetVec> cursor = getCodeCursor(player);
@@ -237,10 +247,7 @@ public class CodeEditor {
         functions.put(name, function);
 
         Optional<WidgetVec> pos = getCodeCursor(player).map(WidgetVec::gridAligned);
-        if (pos.isEmpty()) {
-            player.sendError("You must be looking at the code area!");
-            return;
-        }
+        if (assertCodeCursor(player, pos)) return;
 
         NodeWidget inputs = new NodeWidget(pos.get(), function.inputsNode);
         NodeWidget outputs = new NodeWidget(pos.get(), function.outputsNode);
@@ -254,12 +261,28 @@ public class CodeEditor {
         rootWidgets.add(outputs);
     }
 
+    public void createCommand(EditOrigin player, String name) {
+        if (commands.containsKey(name)) {
+            player.sendError("Comamnd " + name + " already exists");
+            return;
+        }
+
+        SpaceCommandDefinition cmd = new SpaceCommandDefinition(name);
+        commands.put(name, cmd);
+
+        Optional<WidgetVec> pos = getCodeCursor(player).map(WidgetVec::gridAligned);
+        if (assertCodeCursor(player, pos)) return;
+
+        //TODO: multiple syntaxes
+        NodeWidget rootSyntaxWidget = new NodeWidget(pos.get(), cmd.addSyntax());
+        rootSyntaxWidget.pos(pos.get().add(rootSyntaxWidget.size().x(), 0));
+        rootSyntaxWidget.update();
+        rootWidgets.add(rootSyntaxWidget);
+    }
+
     private FunctionDefinition tryGetFunction(EditOrigin player) {
         Optional<WidgetVec> pos = getCodeCursor(player);
-        if (pos.isEmpty()) {
-            player.sendError("You must be looking at the code wall!");
-            return null;
-        }
+        if (assertCodeCursor(player, pos)) return null;
 
         FunctionDefinition function = null;
         for (Widget w : new HashSet<>(rootWidgets)) {
@@ -347,10 +370,7 @@ public class CodeEditor {
         }
 
         Optional<WidgetVec> pos = getCodeCursor(player);
-        if (pos.isEmpty()) {
-            player.sendError("You must be looking at the code wall!");
-            return;
-        }
+        if (assertCodeCursor(player, pos)) return;
 
         TypeSelectorWidget typeSelectorWidget = new TypeSelectorWidget(pos.get(), List.copyOf(AllTypes.all), type -> {
             if (function.getInput(name) != null) return;
@@ -372,10 +392,7 @@ public class CodeEditor {
         }
 
         Optional<WidgetVec> pos = getCodeCursor(player);
-        if (pos.isEmpty()) {
-            player.sendError("You must be looking at the code wall!");
-            return;
-        }
+        if (assertCodeCursor(player, pos)) return;
 
         TypeSelectorWidget typeSelectorWidget = new TypeSelectorWidget(pos.get(), List.copyOf(AllTypes.all), type -> {
             if (function.getOutput(name) != null) return;
@@ -459,10 +476,7 @@ public class CodeEditor {
         Set<NodeWidget> todo = new HashSet<>();
 
         Optional<WidgetVec> pos = getCodeCursor(player);
-        if (pos.isEmpty()) {
-            player.sendError("You must be looking at the code wall!");
-            return;
-        }
+        if (assertCodeCursor(player, pos)) return;
 
         for (Widget w : rootWidgets) {
             if (!(w instanceof NodeWidget n)) continue;
