@@ -21,7 +21,7 @@ public class ListForEachNode<T> extends SingleGenericNode<T> {
         Output<T> value = new Output<>("value", "Value", type);
         Output<Double> index = new Output<>("index", "Index", NumberType.INSTANCE);
         Output<Void> next = new Output<>("next", "Next", SignalType.INSTANCE);
-
+        index.valueFromScope();
         value.valueFromScope();
 
         signal.onSignal((ctx) -> {

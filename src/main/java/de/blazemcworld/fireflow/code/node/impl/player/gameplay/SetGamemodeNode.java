@@ -20,14 +20,10 @@ public class SetGamemodeNode extends Node {
 
         signal.onSignal((ctx) -> {
             player.getValue(ctx).tryUse(ctx, p -> {
-                GameMode mode = switch (gamemode.getValue(ctx)) {
-                    case "Creative" -> GameMode.CREATIVE;
-                    case "Survival" -> GameMode.SURVIVAL;
-                    case "Adventure" -> GameMode.ADVENTURE;
-                    case "Spectator" -> GameMode.SPECTATOR;
-                    default -> null;
-                };
-                if (mode != null) p.changeGameMode(mode);
+                try {
+                    GameMode mode = GameMode.valueOf(gamemode.getValue(ctx).toUpperCase());
+                    if (mode != null) p.changeGameMode(mode);
+                } catch (Exception e) {}
             });
             ctx.sendSignal(next);
         });

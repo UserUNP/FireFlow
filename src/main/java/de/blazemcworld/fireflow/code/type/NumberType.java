@@ -43,12 +43,6 @@ public class NumberType extends WireType<Double> {
     }
 
     @Override
-    protected Double convertInternal(WireType<?> other, Object v) {
-        if (v instanceof Integer i) return i.doubleValue();
-        return super.convertInternal(other, v);
-    }
-
-    @Override
     public Double checkType(Object obj) {
         if (obj instanceof Double d) return d;
         return null;

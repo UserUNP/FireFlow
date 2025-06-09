@@ -62,9 +62,6 @@ public class CodeEvaluator {
         for (Widget widget : space.editor.rootWidgets) {
             if (widget instanceof NodeWidget nodeWidget) {
                 nodes.add(nodeWidget);
-                if (nodeWidget.node instanceof SpaceCommandDefinition.SyntaxNode cmdSyntaxNode) {
-                    cmdSyntaxNode.register(rootCommandNode, this);
-                }
             }
         }
 
@@ -83,6 +80,7 @@ public class CodeEvaluator {
         HashMap<Node, Node> old2new = new HashMap<>();
 
         HashMap<String, FunctionDefinition> functions = new HashMap<>();
+        HashMap<String, SpaceCommandDefinition> commands = new HashMap<>();
 
         for (FunctionDefinition old : space.editor.functions.values()) {
             FunctionDefinition copy = new FunctionDefinition(old.name, old.icon);
@@ -94,6 +92,8 @@ public class CodeEvaluator {
             }
             functions.put(old.name, copy);
         }
+
+        for (SpaceCommandDefinition old : space.editor.commands.values()) commands.put(old.name, new SpaceCommandDefinition(old.name));
 
         for (NodeWidget nodeWidget : nodes) {
             Node node = nodeWidget.node;
@@ -111,8 +111,13 @@ public class CodeEvaluator {
                 copy = functions.get(outputsNode.function.name).outputsNode;
             }
 
+            if (node instanceof SpaceCommandDefinition.SyntaxNode syntaxNode) {
+                copy = commands.get(syntaxNode.command.name).addSyntax(syntaxNode);
+                ((SpaceCommandDefinition.SyntaxNode) copy).register(rootCommandNode, this);
+            }
+
             if (copy == null) copy = node.copy();
-            
+
             for (Varargs<?> base : node.varargs) {
                 for (Varargs<?> next : copy.varargs) {
                     if (!base.id.equals(next.id)) continue;

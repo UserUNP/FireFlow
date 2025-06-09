@@ -177,6 +177,7 @@ public class NodeList {
                         .add(new DivideNumbersNode())
                         .add(new GreaterEqualNode())
                         .add(new GreaterThanNode())
+                        .add(new IsNaNNode())
                         .add(new LessEqualNode())
                         .add(new LessThanNode())
                         .add(new ModuloNode())
